@@ -21,6 +21,7 @@
     <label>Send to: <input id="toUser" value="bob"></label>
     <label>Message: <input id="messageText" value="hello"></label>
     <button id="sendBtn">Send</button>
+    <button id="sendPublicBtn">Send Public</button>
   </div>
 
   <h3>Log:</h3>
@@ -68,6 +69,12 @@
       const text = document.getElementById('messageText').value;
       sendMessage(to, text);
       logLine(`You → ${to}: ${text}`);
+    };
+
+    document.getElementById('sendPublicBtn').onclick = () => {
+      const text = document.getElementById('messageText').value;
+      sendPublicMessage(text);
+      logLine(`You → public: ${text}`);
     };
   </script>
 
