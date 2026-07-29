@@ -36,6 +36,21 @@ wss.on("connection", (ws) => {
     }
   });
 
+  if (msg.type === "public") {
+    // Broadcast to all connected clients
+    for (const [id, client] of clients.entries()) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(
+          JSON.stringify({
+            type: "message",
+            from: userId,
+            text: msg.text,
+          })
+        );
+      }
+    }
+  }
+
   ws.on("close", () => clients.delete(userId));
 });
 
