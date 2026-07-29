@@ -1,44 +1,43 @@
-const WebSocket = require('ws'); // WebSocket Library
-const http = require('http'); // HTTP Library
+const http = require("http");
+const WebSocket = require("ws");
 
-const server = http.createServer(); // Create HTTP Server
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("OK"); // Respond to health checks
+});
 
-const wss = new WebSocket.Server({ server }); // WebSocket Listens to Port 8080
-console.log('Server listening....');
+const wss = new WebSocket.Server({ server });
 
-const clients = new Map() // Memory Table
+const clients = new Map();
 
-wss.on('connection', (ws) => { // When Connection Happens....
-    let userId; // Placeholder for UserID
+wss.on("connection", (ws) => {
+  let userId;
 
-    ws.on('message', (data) => { // When Message Sends
-        const msg = JSON.parse(data); // Parse Message that was sent.
+  ws.on("message", (data) => {
+    const msg = JSON.parse(data);
 
-      if (msg.type === 'register') { // If the message type is register...
-        userId = msg.userId; // Set Placeholder UserId as userId embedded in msg
-        clients.set(userId, ws); // Puts New Client in memory Table.
-        return; // Return.
-         }
+    if (msg.type === "register") {
+      userId = msg.userId;
+      clients.set(userId, ws);
+      return;
+    }
 
-      if (msg.type === 'relay') { // If Message is Relay....
+    if (msg.type === "relay") {
+      const target = clients.get(msg.to);
+      if (target && target.readyState === WebSocket.OPEN) {
+        target.send(
+          JSON.stringify({
+            type: "message",
+            from: userId,
+            text: msg.text,
+          })
+        );
+      }
+    }
+  });
 
-        const target = clients.get(msg.to);  // Pick Intended client through Msg.to
-
-        if (target && target.readyState === WebSocket.OPEN) { // If Client Socket is Still Live...
-            target.send(JSON.stringify({ // Send Client User's Texts
-                type: 'message',
-                from: userId,
-                text: msg.text
-            }))
-        }
-       }
-
-    })
-
-   
-
-    ws.on('close', () => clients.delete(userId)) // If Client Connect closed, Delete User.
-})
+  ws.on("close", () => clients.delete(userId));
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
