@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Relay Test</title>
+</head>
+<body>
+
+  <h2>WebSocket Relay Test</h2>
+
+  <p>Status: <span id="status">connecting...</span></p>
+
+  <div>
+    <label>My userId: <input id="myUserId" value="alice"></label>
+    <button id="registerBtn">Register</button>
+  </div>
+
+  <br>
+
+  <div>
+    <label>Send to: <input id="toUser" value="bob"></label>
+    <label>Message: <input id="messageText" value="hello"></label>
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <h3>Log:</h3>
+  <ul id="log"></ul>
+
+  <!-- points to your client-side script -->
+  <script src="client-func/client-msg.js"></script>
+
+  <script>
+    // helper to print lines into the on-page log, so you don't have to
+    // keep checking the console
+    function logLine(text) {
+      const li = document.createElement('li');
+      li.textContent = text;
+      document.getElementById('log').appendChild(li);
+    }
+
+    // update the status text once the connection opens
+    ws.onopen = () => {
+      document.getElementById('status').textContent = 'connected';
+      logLine('Connected to server.');
+    };
+
+    ws.onclose = () => {
+      document.getElementById('status').textContent = 'disconnected';
+      logLine('Disconnected from server.');
+    };
+
+    // show incoming messages on the page instead of only the console
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      logLine(`${msg.from}: ${msg.text}`);
+    };
+
+    // register button uses whatever userId is typed in the input
+    document.getElementById('registerBtn').onclick = () => {
+      const userId = document.getElementById('myUserId').value;
+      ws.send(JSON.stringify({ type: 'register', userId }));
+      logLine(`Registered as "${userId}"`);
+    };
+
+    // send button calls your existing sendMessage() function
+    document.getElementById('sendBtn').onclick = () => {
+      const to = document.getElementById('toUser').value;
+      const text = document.getElementById('messageText').value;
+      sendMessage(to, text);
+      logLine(`You → ${to}: ${text}`);
+    };
+  </script>
+
+</body>
+</html>
