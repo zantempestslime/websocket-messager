@@ -13,3 +13,6 @@ function sendMessage(to, text) { // a function used to send user message, like w
     ws.send(JSON.stringify({ type: 'relay', to, text }))
 }
 
+function sendPublicMessage(text) {
+    ws.send(JSON.stringify({ type: 'public', text }))
+}
